@@ -1,0 +1,18 @@
+{
+  "name": "aether-mean-prototype",
+  "version": "0.1.0",
+  "description": "Lightweight audio-only Aether prototype built with Angular and Tauri.",
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend start",
+    "build:frontend": "npm --prefix frontend run build",
+    "tauri": "cd src-tauri && tauri",
+    "desktop:dev": "cd src-tauri && tauri dev",
+    "desktop:build": "cd src-tauri && tauri build"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.6.0"
+  }
+}
