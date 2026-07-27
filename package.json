@@ -1,6 +1,6 @@
 {
   "name": "aether-mean",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Lightweight desktop music player built with Angular and Tauri.",
   "scripts": {
     "dev:frontend": "npm --prefix frontend start",

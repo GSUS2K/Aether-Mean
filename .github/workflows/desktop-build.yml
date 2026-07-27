@@ -68,9 +68,6 @@ jobs:
           releaseBody: "Release v__VERSION__ of Aether Mean."
           releaseDraft: false
           prerelease: false
-
-      - name: Upload bundles
-        uses: actions/upload-artifact@v4
-        with:
-          name: aether-mean-${{ matrix.target }}
-          path: src-tauri/target/release/bundle/**
+          releaseAssetNamePattern: "Aether Mean-[version]-[platform]-[arch][setup][ext]"
+          uploadWorkflowArtifacts: true
+          workflowArtifactNamePattern: "Aether Mean-[version]-[platform]-[arch]-[bundle]"
