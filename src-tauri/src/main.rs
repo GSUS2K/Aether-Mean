@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct Track {
@@ -189,17 +189,9 @@ fn main() {
       remove_library_item
     ])
     .setup(|app| {
-      let window = tauri::WindowBuilder::new(
-        app,
-        "main",
-        tauri::WindowUrl::App("index.html".into()),
-      )
-      .title("Aether-Mean")
-      .inner_size(1280.0, 820.0)
-      .min_inner_size(960.0, 640.0)
-      .build()?;
-
-      window.set_focus().ok();
+      if let Some(window) = app.get_window("main") {
+        window.set_focus().ok();
+      }
       Ok(())
     })
     .run(tauri::generate_context!())
