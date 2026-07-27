@@ -14,6 +14,9 @@ export interface Track {
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   public lastResults: Track[] = []
+  public searching = false
+  public error = ''
+  public lastQuery = ''
 
   search(query: string): Observable<Track[]> {
     return from(invoke<Track[]>('search_tracks', { query }))

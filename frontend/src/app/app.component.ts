@@ -8,30 +8,37 @@ import { ThemeService } from './services/theme.service'
 @Component({
   selector: 'app-root',
   template: `
-    <div class="top">
-      <div>
-        <h1>Aether-Mean</h1>
-        <div class="tagline">Audio-only music app</div>
-      </div>
-      <div class="top-actions">
-        <button (click)="toggleTheme()">Theme</button>
-        <button (click)="playRandom()">Random</button>
-        <button (click)="openSaved()">Saved {{ savedCount }}</button>
-      </div>
-    </div>
+    <div class="app-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">Aether Mean</div>
+          <h1>Lightweight music control for desktop</h1>
+          <p>Search tracks, queue them fast, and keep your local favorites in one place.</p>
+        </div>
+        <div class="hero-actions">
+          <button type="button" (click)="toggleTheme()">Theme</button>
+          <button type="button" (click)="playRandom()">Random</button>
+          <button type="button" (click)="openSaved()">Saved {{ savedCount }}</button>
+        </div>
+      </header>
 
-    <div class="search-row">
-      <app-search></app-search>
-    </div>
+      <section class="search-row">
+        <app-search></app-search>
+      </section>
 
-    <div class="results">
-      <div class="left">
-        <search-results></search-results>
-      </div>
-      <div class="right">
-        <app-player></app-player>
-        <app-library></app-library>
-      </div>
+      <section class="results">
+        <div class="left panel">
+          <search-results></search-results>
+        </div>
+        <div class="right">
+          <div class="panel">
+            <app-player></app-player>
+          </div>
+          <div class="panel">
+            <app-library></app-library>
+          </div>
+        </div>
+      </section>
     </div>
   `
 })

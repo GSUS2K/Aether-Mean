@@ -8,15 +8,21 @@ import { Subscription } from 'rxjs'
   selector: 'app-library',
   template: `
     <div class="library-head">
-      <h3>Saved</h3>
-      <button (click)="reload()">Refresh</button>
+      <div>
+        <div class="card-title">Saved library</div>
+        <div class="results-count">{{ saved.length }} tracks stored</div>
+      </div>
+      <button type="button" (click)="reload()">Refresh</button>
     </div>
-    <div class="library-list">
+    <div class="empty-state compact" *ngIf="!saved.length">
+      <div class="empty-text">Save tracks you want to keep here.</div>
+    </div>
+    <div class="library-list" *ngIf="saved.length">
       <div class="library-item" *ngFor="let item of saved">
         <div class="library-title">{{ item.title }}</div>
         <div class="controls">
-          <button (click)="play(item)">Play</button>
-          <button (click)="remove(item.id)">Remove</button>
+          <button type="button" (click)="play(item)">Play</button>
+          <button type="button" (click)="remove(item.id)">Remove</button>
         </div>
       </div>
     </div>
