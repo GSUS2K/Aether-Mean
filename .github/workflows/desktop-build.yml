@@ -1,13 +1,15 @@
-name: desktop-build
+name: release
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    tags:
+      - "v*"
 
 jobs:
   build:
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -31,12 +33,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install Node
+      - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Rust
+      - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -54,11 +56,18 @@ jobs:
         working-directory: frontend
         run: npm install
 
-      - name: Build desktop app
+      - name: Build release bundles
         uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: .
           args: --target ${{ matrix.target }} --bundles ${{ matrix.bundle }}
+          tagName: v__VERSION__
+          releaseName: "Aether Mean v__VERSION__"
+          releaseBody: "Release v__VERSION__ of Aether Mean."
+          releaseDraft: false
+          prerelease: false
 
       - name: Upload bundles
         uses: actions/upload-artifact@v4

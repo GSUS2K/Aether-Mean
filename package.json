@@ -1,7 +1,7 @@
 {
-  "name": "aether-mean-prototype",
+  "name": "aether-mean",
   "version": "0.1.0",
-  "description": "Lightweight audio-only Aether prototype built with Angular and Tauri.",
+  "description": "Lightweight desktop music player built with Angular and Tauri.",
   "scripts": {
     "dev:frontend": "npm --prefix frontend start",
     "build:frontend": "npm --prefix frontend run build",
