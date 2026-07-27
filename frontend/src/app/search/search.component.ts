@@ -49,9 +49,9 @@ export class SearchComponent {
       next: (results) => {
         this.api.lastResults = results || []
       },
-      error: () => {
+      error: (err) => {
         this.api.lastResults = []
-        this.api.error = 'Search could not run. Make sure yt-dlp is installed and available on PATH.'
+        this.api.error = err instanceof Error ? err.message : String(err)
       }
     })
   }

@@ -43,6 +43,77 @@ fn run_command(program: &str, args: &[&str]) -> Result<String, String> {
   Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
+fn ytdlp_binary_name() -> &'static str {
+  if cfg!(windows) {
+    "yt-dlp.exe"
+  } else {
+    "yt-dlp"
+  }
+}
+
+fn ytdlp_install_path(app: &AppHandle) -> Result<PathBuf, String> {
+  let base_dir = app
+    .path_resolver()
+    .app_data_dir()
+    .ok_or_else(|| "unable to resolve the app data directory".to_string())?;
+
+  let path = base_dir.join("bin").join(ytdlp_binary_name());
+  if path.exists() {
+    return Ok(path);
+  }
+
+  if let Some(parent) = path.parent() {
+    fs::create_dir_all(parent).map_err(|err| format!("failed to create yt-dlp folder: {err}"))?;
+  }
+
+  let download_url = format!(
+    "https://github.com/yt-dlp/yt-dlp/releases/latest/download/{}",
+    ytdlp_binary_name()
+  );
+
+  let response = reqwest::blocking::get(&download_url)
+    .map_err(|err| format!("failed to download yt-dlp: {err}"))?;
+  if !response.status().is_success() {
+    return Err(format!(
+      "failed to download yt-dlp: {}",
+      response.status()
+    ));
+  }
+
+  let bytes = response
+    .bytes()
+    .map_err(|err| format!("failed to read yt-dlp download: {err}"))?;
+  fs::write(&path, &bytes).map_err(|err| format!("failed to write yt-dlp: {err}"))?;
+
+  #[cfg(not(windows))]
+  {
+    use std::os::unix::fs::PermissionsExt;
+    let mut permissions = fs::metadata(&path)
+      .map_err(|err| format!("failed to read yt-dlp metadata: {err}"))?
+      .permissions();
+    permissions.set_mode(0o755);
+    fs::set_permissions(&path, permissions)
+      .map_err(|err| format!("failed to mark yt-dlp executable: {err}"))?;
+  }
+
+  Ok(path)
+}
+
+fn ytdlp_command(app: &AppHandle) -> Result<String, String> {
+  let binary_name = ytdlp_binary_name();
+  let local = PathBuf::from("bin").join(binary_name);
+  if local.exists() {
+    return Ok(local.to_string_lossy().to_string());
+  }
+
+  let installed = ytdlp_install_path(app)?;
+  if installed.exists() {
+    return Ok(installed.to_string_lossy().to_string());
+  }
+
+  Ok(binary_name.to_string())
+}
+
 fn parse_track(line: &str) -> Option<Track> {
   let value: serde_json::Value = serde_json::from_str(line).ok()?;
   let id = value
@@ -108,14 +179,14 @@ fn write_library(path: &Path, library: &LibraryFile) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn search_tracks(query: String) -> Result<Vec<Track>, String> {
+fn search_tracks(app: AppHandle, query: String) -> Result<Vec<Track>, String> {
   let query = query.trim();
   if query.is_empty() {
     return Ok(Vec::new());
   }
 
   let output = run_command(
-    "yt-dlp",
+    &ytdlp_command(&app)?,
     &[
       "--dump-json",
       "--no-warnings",
@@ -134,14 +205,14 @@ fn search_tracks(query: String) -> Result<Vec<Track>, String> {
 }
 
 #[tauri::command]
-fn stream_url(webpage_url: String) -> Result<String, String> {
+fn stream_url(app: AppHandle, webpage_url: String) -> Result<String, String> {
   let url = webpage_url.trim();
   if url.is_empty() {
     return Err("missing track url".to_string());
   }
 
   let output = run_command(
-    "yt-dlp",
+    &ytdlp_command(&app)?,
     &["-f", "bestaudio", "-g", "--no-warnings", "--no-playlist", url],
   )?;
 

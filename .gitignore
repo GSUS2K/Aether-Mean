@@ -6,6 +6,8 @@ frontend/node_modules/
 frontend/.angular/cache/
 frontend-dist/
 src-tauri/target/
+src-tauri/bin/yt-dlp*
+src-tauri/src-tauri/
 
 # local app data
 data/

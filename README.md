@@ -27,6 +27,7 @@ Each release includes builds for:
 - macOS 12 or newer
 - A modern Linux desktop with AppImage or `.deb` support
 - An internet connection for search and playback
+- The app downloads its helper binary automatically the first time you run it
 
 ## First run
 
@@ -38,7 +39,7 @@ Each release includes builds for:
 
 ## How it works
 
-Aether Mean uses Angular for the interface and Tauri with Rust for the desktop layer. Search and stream lookups are handled in the app, so the experience stays quick and lightweight.
+Aether Mean uses Angular for the interface and Tauri with Rust for the desktop layer. Search and stream lookups are handled in the app, and the helper binary is downloaded automatically if it is missing.
 
 ## Support
 
