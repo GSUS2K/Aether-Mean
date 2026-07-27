@@ -3,6 +3,7 @@ node_modules/
 frontend/node_modules/
 
 # build output
+frontend/.angular/cache/
 frontend-dist/
 src-tauri/target/
 
@@ -20,3 +21,4 @@ pnpm-debug.log*
 ._*
 Thumbs.db
 Desktop.ini
+
