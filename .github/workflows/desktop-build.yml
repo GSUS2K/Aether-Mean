@@ -61,7 +61,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          projectPath: src-tauri
+          projectPath: .
+          tauriScript: npm run tauri
           args: --target ${{ matrix.target }} --bundles ${{ matrix.bundle }}
           tagName: v__VERSION__
           releaseName: "Aether Mean v__VERSION__"
