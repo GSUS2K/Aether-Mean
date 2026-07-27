@@ -9,35 +9,65 @@ import { ThemeService } from './services/theme.service'
   selector: 'app-root',
   template: `
     <div class="app-shell">
-      <header class="hero">
-        <div class="hero-copy">
-          <div class="eyebrow">Aether Mean</div>
-          <h1>Lightweight music control for desktop</h1>
-          <p>Search tracks, queue them fast, and keep your local favorites in one place.</p>
+      <header class="topbar panel">
+        <div class="brand">
+          <div class="brand-mark">A</div>
+          <div>
+            <div class="eyebrow">Aether Mean</div>
+            <div class="brand-subtitle">Audio search and playback</div>
+          </div>
         </div>
-        <div class="hero-actions">
+
+        <div class="topbar-actions">
           <button type="button" (click)="toggleTheme()">Theme</button>
           <button type="button" (click)="playRandom()">Random</button>
           <button type="button" (click)="openSaved()">Saved {{ savedCount }}</button>
         </div>
       </header>
 
-      <section class="search-row">
+      <section class="hero panel">
+        <div class="hero-copy">
+          <div class="eyebrow">Studio mode</div>
+          <h1>Search, queue, and play without leaving the desktop.</h1>
+          <p>
+            Built for fast listening. Search the web, queue tracks, and keep a local library of the
+            songs you actually want to return to.
+          </p>
+        </div>
+
+        <div class="hero-meta">
+          <div class="metric">
+            <div class="metric-value">{{ api.lastResults.length }}</div>
+            <div class="metric-label">Results</div>
+          </div>
+          <div class="metric">
+            <div class="metric-value">{{ queue.items.length }}</div>
+            <div class="metric-label">Queue</div>
+          </div>
+          <div class="metric">
+            <div class="metric-value">{{ savedCount }}</div>
+            <div class="metric-label">Saved</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="search-row panel">
         <app-search></app-search>
       </section>
 
-      <section class="results">
-        <div class="left panel">
+      <section class="workspace">
+        <div class="results panel">
           <search-results></search-results>
         </div>
-        <div class="right">
+
+        <aside class="sidebar">
           <div class="panel">
             <app-player></app-player>
           </div>
           <div class="panel">
             <app-library></app-library>
           </div>
-        </div>
+        </aside>
       </section>
     </div>
   `
@@ -48,7 +78,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     private theme: ThemeService,
-    private queue: QueueService,
+    public queue: QueueService,
     public api: ApiService,
     private library: LibraryService
   ) {}

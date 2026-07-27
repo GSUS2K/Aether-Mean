@@ -14,14 +14,14 @@ import { Subscription } from 'rxjs'
       </div>
       <button type="button" (click)="reload()">Refresh</button>
     </div>
-    <div class="empty-state compact" *ngIf="!saved.length">
+    <div class="results-empty compact" *ngIf="!saved.length">
       <div class="empty-text">Save tracks you want to keep here.</div>
     </div>
     <div class="library-list" *ngIf="saved.length">
       <div class="library-item" *ngFor="let item of saved">
         <div class="library-title">{{ item.title }}</div>
         <div class="controls">
-          <button type="button" (click)="play(item)">Play</button>
+          <button type="button" class="primary" (click)="play(item)">Play</button>
           <button type="button" (click)="remove(item.id)">Remove</button>
         </div>
       </div>

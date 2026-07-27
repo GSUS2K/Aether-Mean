@@ -23,6 +23,6 @@ export class ApiService {
   }
 
   streamUrl(webpageUrl: string): Promise<string> {
-    return invoke<string>('stream_url', { webpage_url: webpageUrl })
+    return invoke<string>('stream_url', { webpageUrl })
   }
 }

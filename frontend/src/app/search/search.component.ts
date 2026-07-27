@@ -13,7 +13,7 @@ import { finalize } from 'rxjs/operators'
           placeholder="Search songs, artists, or paste a link"
           (keydown.enter)="doSearch()"
         />
-        <button type="button" [disabled]="searching || !q.trim()" (click)="doSearch()">
+        <button type="button" class="search-button" [disabled]="searching || !q.trim()" (click)="doSearch()">
           {{ searching ? 'Searching...' : 'Search' }}
         </button>
       </div>
