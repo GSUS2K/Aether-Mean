@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/1",
   "package": {
     "productName": "Aether Mean",
-    "version": "0.1.8"
+    "version": "0.1.9"
   },
   "build": {
     "beforeDevCommand": "npm --prefix frontend run start",
@@ -16,6 +16,8 @@
         "title": "Aether Mean",
         "width": 1280,
         "height": 820,
+        "minWidth": 960,
+        "minHeight": 640,
         "resizable": true
       }
     ],

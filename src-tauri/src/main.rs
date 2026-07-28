@@ -2,9 +2,15 @@
 
 use serde::{Deserialize, Serialize};
 use std::fs;
+use std::io::Write;
+use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::thread;
 use tauri::{AppHandle, Manager};
+
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct Track {
@@ -27,8 +33,13 @@ struct LibraryFile {
 }
 
 fn run_command(program: &str, args: &[&str]) -> Result<String, String> {
-  let output = Command::new(program)
-    .args(args)
+  let mut command = Command::new(program);
+  command.args(args);
+
+  #[cfg(windows)]
+  command.creation_flags(0x08000000);
+
+  let output = command
     .output()
     .map_err(|err| format!("failed to start {program}: {err}"))?;
 
@@ -63,7 +74,8 @@ fn ytdlp_install_path(app: &AppHandle) -> Result<PathBuf, String> {
   }
 
   if let Some(parent) = path.parent() {
-    fs::create_dir_all(parent).map_err(|err| format!("failed to create yt-dlp folder: {err}"))?;
+    fs::create_dir_all(parent)
+      .map_err(|err| format!("failed to create yt-dlp folder: {err}"))?;
   }
 
   let download_url = format!(
@@ -74,10 +86,7 @@ fn ytdlp_install_path(app: &AppHandle) -> Result<PathBuf, String> {
   let response = reqwest::blocking::get(&download_url)
     .map_err(|err| format!("failed to download yt-dlp: {err}"))?;
   if !response.status().is_success() {
-    return Err(format!(
-      "failed to download yt-dlp: {}",
-      response.status()
-    ));
+    return Err(format!("failed to download yt-dlp: {}", response.status()));
   }
 
   let bytes = response
@@ -138,7 +147,12 @@ fn parse_track(line: &str) -> Option<Track> {
     .get("webpage_url")
     .and_then(|v| v.as_str())
     .map(|s| s.to_string())
-    .or_else(|| value.get("url").and_then(|v| v.as_str()).map(|s| s.to_string()));
+    .or_else(|| {
+      value
+        .get("url")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
+    });
   let url = value
     .get("url")
     .and_then(|v| v.as_str())
@@ -170,12 +184,21 @@ fn read_library(path: &Path) -> LibraryFile {
 
 fn write_library(path: &Path, library: &LibraryFile) -> Result<(), String> {
   if let Some(parent) = path.parent() {
-    fs::create_dir_all(parent).map_err(|err| format!("failed to create library folder: {err}"))?;
+    fs::create_dir_all(parent)
+      .map_err(|err| format!("failed to create library folder: {err}"))?;
   }
 
   let contents = serde_json::to_string_pretty(library)
     .map_err(|err| format!("failed to serialise library: {err}"))?;
   fs::write(path, contents).map_err(|err| format!("failed to write library: {err}"))
+}
+
+fn focus_main_window(app: &AppHandle) {
+  if let Some(window) = app.get_window("main") {
+    window.show().ok();
+    window.unminimize().ok();
+    window.set_focus().ok();
+  }
 }
 
 #[tauri::command]
@@ -213,7 +236,14 @@ fn stream_url(app: AppHandle, webpage_url: String) -> Result<String, String> {
 
   let output = run_command(
     &ytdlp_command(&app)?,
-    &["-f", "bestaudio", "-g", "--no-warnings", "--no-playlist", url],
+    &[
+      "-f",
+      "bestaudio",
+      "-g",
+      "--no-warnings",
+      "--no-playlist",
+      url,
+    ],
   )?;
 
   let stream = output
@@ -251,6 +281,16 @@ fn remove_library_item(app: AppHandle, id: String) -> Result<LibraryFile, String
 }
 
 fn main() {
+  let instance_listener = match TcpListener::bind("127.0.0.1:43175") {
+    Ok(listener) => listener,
+    Err(_) => {
+      if let Ok(mut stream) = TcpStream::connect("127.0.0.1:43175") {
+        stream.write_all(b"focus").ok();
+      }
+      return;
+    }
+  };
+
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![
       search_tracks,
@@ -259,10 +299,21 @@ fn main() {
       add_library_item,
       remove_library_item
     ])
-    .setup(|app| {
-      if let Some(window) = app.get_window("main") {
-        window.set_focus().ok();
-      }
+    .setup(move |app| {
+      let app_handle = app.handle();
+      thread::spawn(move || {
+        for connection in instance_listener.incoming() {
+          if connection.is_ok() {
+            let app_handle = app_handle.clone();
+            let focus_handle = app_handle.clone();
+            app_handle
+              .run_on_main_thread(move || focus_main_window(&focus_handle))
+              .ok();
+          }
+        }
+      });
+
+      focus_main_window(&app.handle());
       Ok(())
     })
     .run(tauri::generate_context!())

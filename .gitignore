@@ -18,6 +18,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# local generation scratch space
+tmp/
+
 # operating system files
 .DS_Store
 ._*
