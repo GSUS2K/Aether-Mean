@@ -1,5 +1,6 @@
-import { Component } from '@angular/core'
+import { Component, OnDestroy } from '@angular/core'
 import { ApiService } from '../services/api.service'
+import { Subscription } from 'rxjs'
 import { finalize } from 'rxjs/operators'
 
 @Component({
@@ -17,6 +18,13 @@ import { finalize } from 'rxjs/operators'
           {{ searching ? 'Searching...' : 'Search' }}
         </button>
       </div>
+
+      <div class="quick-searches">
+        <button type="button" class="quick-chip" *ngFor="let chip of quickSearches" (click)="useChip(chip)">
+          {{ chip }}
+        </button>
+      </div>
+
       <div class="status-line">
         <span *ngIf="api.searching">Looking up "{{ api.lastQuery }}"</span>
         <span class="error" *ngIf="api.error">{{ api.error }}</span>
@@ -24,11 +32,18 @@ import { finalize } from 'rxjs/operators'
     </div>
   `
 })
-export class SearchComponent {
+export class SearchComponent implements OnDestroy {
   q = ''
   searching = false
+  quickSearches = ['late night mix', 'indie acoustic', 'gini aashiyan', 'lofi rain', 'retro pop']
+  private launchSub?: Subscription
 
-  constructor(public api: ApiService) {}
+  constructor(public api: ApiService) {
+    this.launchSub = this.api.launchQuery$.subscribe((query) => {
+      this.q = query
+      this.doSearch()
+    })
+  }
 
   doSearch() {
     const query = this.q.trim()
@@ -54,5 +69,14 @@ export class SearchComponent {
         this.api.error = err instanceof Error ? err.message : String(err)
       }
     })
+  }
+
+  useChip(chip: string) {
+    this.q = chip
+    this.doSearch()
+  }
+
+  ngOnDestroy() {
+    this.launchSub?.unsubscribe()
   }
 }

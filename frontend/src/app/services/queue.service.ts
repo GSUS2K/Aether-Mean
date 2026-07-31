@@ -9,6 +9,9 @@ export class QueueService {
   streamUrl = ''
   loading = false
   error = ''
+  currentTime = 0
+  totalTime = 0
+  isPlaying = false
   private audioEl: HTMLAudioElement | null = null
   private playToken = 0
 
@@ -16,10 +19,29 @@ export class QueueService {
 
   attachAudio(element: HTMLAudioElement) {
     this.audioEl = element
+    this.audioEl.addEventListener('timeupdate', () => {
+      this.currentTime = this.audioEl?.currentTime || 0
+    })
+    this.audioEl.addEventListener('loadedmetadata', () => {
+      this.totalTime = Number.isFinite(this.audioEl?.duration) ? this.audioEl?.duration || 0 : 0
+    })
+    this.audioEl.addEventListener('play', () => {
+      this.isPlaying = true
+    })
+    this.audioEl.addEventListener('pause', () => {
+      this.isPlaying = false
+    })
   }
 
   add(item: Track) {
     this.items.push(item)
+  }
+
+  loadQueue(items: Track[], autoplay = true) {
+    this.items = items.map((item) => ({ ...item }))
+    if (autoplay && this.items.length) {
+      void this.playItem(this.items[0])
+    }
   }
 
   clear() {
@@ -29,6 +51,9 @@ export class QueueService {
     this.streamUrl = ''
     this.loading = false
     this.error = ''
+    this.currentTime = 0
+    this.totalTime = 0
+    this.isPlaying = false
 
     if (this.audioEl) {
       this.audioEl.pause()
@@ -67,6 +92,7 @@ export class QueueService {
     this.current = item
     this.loading = true
     this.error = ''
+    this.currentTime = 0
 
     if (this.audioEl) {
       this.audioEl.pause()
@@ -131,9 +157,28 @@ export class QueueService {
     this.current = null
     this.streamUrl = ''
     this.loading = false
+    this.currentTime = 0
+    this.totalTime = 0
+    this.isPlaying = false
 
     if (this.audioEl) {
       this.audioEl.pause()
     }
+  }
+
+  replay(item: Track) {
+    void this.playItem(item)
+  }
+
+  removeAt(index: number) {
+    this.items.splice(index, 1)
+  }
+
+  get progressPercent() {
+    if (!this.totalTime) {
+      return 0
+    }
+
+    return Math.max(0, Math.min(100, (this.currentTime / this.totalTime) * 100))
   }
 }

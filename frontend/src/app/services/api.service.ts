@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core'
-import { from, Observable } from 'rxjs'
+import { from, Observable, Subject } from 'rxjs'
 import { invoke } from '@tauri-apps/api/tauri'
 
 export interface Track {
@@ -17,6 +17,8 @@ export class ApiService {
   public searching = false
   public error = ''
   public lastQuery = ''
+  private launchQuery = new Subject<string>()
+  launchQuery$ = this.launchQuery.asObservable()
 
   search(query: string): Observable<Track[]> {
     return from(invoke<Track[]>('search_tracks', { query }))
@@ -24,5 +26,14 @@ export class ApiService {
 
   streamUrl(webpageUrl: string): Promise<string> {
     return invoke<string>('stream_url', { webpageUrl })
+  }
+
+  triggerSearch(query: string) {
+    const trimmed = query.trim()
+    if (!trimmed) {
+      return
+    }
+
+    this.launchQuery.next(trimmed)
   }
 }
